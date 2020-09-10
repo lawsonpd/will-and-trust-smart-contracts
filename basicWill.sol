@@ -13,13 +13,16 @@ contract Will {
     address owner = msg.sender;
     
     // whether will is active for funds to be withdrawn.
-    bool willActivated = false;
+    bool private willActivated = false;
     
     // how the funds will be split between beneficiaries. the values must represent whole-number
     // percentages. e.g., [50, 25, 25] means the first benef in `benefs` is entitled to 50%
     // and the other two are entitled to 25% each.
     // @future consider adding percentage for person with power of attorney.
-    mapping(address => uint) public benefSplits;
+    mapping(address => uint) private benefSplits;
+    
+    // keep track of which benef's have withdrawn funds to prevent double withdrawals.
+    mapping(address => bool) private hasWithdrawnFunds;
     
     function isOwner() public view returns(bool) {
         require(msg.sender == owner, "Must be owner.");
@@ -30,13 +33,12 @@ contract Will {
         _;
     }
     
-    constructor () public {
-        
-    }
+    constructor () public {}
     
     function addBeneficiary(address _benef, uint _share) public onlyOwner {
         // should have a way to enforce that all beneficiary splits add to 100.
         benefSplits[_benef] = _share;
+        hasWithdrawnFunds[_benef] = false;
     }
     
     function getWillBalance() public view returns(uint) {
@@ -53,13 +55,15 @@ contract Will {
         return benefBalance;
     }
     
-    function addFunds() public payable {
-        
+    function withdraw() public {
+        require(willActivated == true, "Will is not yet active. Funds cannot be withdrawn at this time.");
+        require(hasWithdrawnFunds[msg.sender] == false, "You have already withdrawn your funds.");
+        hasWithdrawnFunds[msg.sender] = true;
+        uint bal = getBenefBalance();
+        msg.sender.transfer(bal);
     }
     
-    // function withdraw
-    
-    // function activateWill() onlyOwner
-    
-    fallback() external payable {}
+    function activateWill() public onlyOwner {
+        willActivated = true;
+    }
 }
