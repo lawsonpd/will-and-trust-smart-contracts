@@ -25,7 +25,7 @@ contract Will {
     mapping(address => bool) private hasWithdrawnFunds;
     
     function isOwner() public view returns(bool) {
-        require(msg.sender == owner, "Must be owner.");
+        return msg.sender == owner;
     }
     
     modifier onlyOwner() {
@@ -37,6 +37,8 @@ contract Will {
     
     function addBeneficiary(address _benef, uint _share) public onlyOwner {
         // should have a way to enforce that all beneficiary splits add to 100.
+        // this could be done with:
+        // require _share <= (100 - sum(existing_shares))
         benefSplits[_benef] = _share;
         hasWithdrawnFunds[_benef] = false;
     }
