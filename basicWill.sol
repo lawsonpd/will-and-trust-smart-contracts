@@ -50,10 +50,10 @@ contract Will {
     function addBeneficiary(address _benef) public onlyOwner {
         // increment number of beneficiaries currently on will.
         num_beneficiaries.increment();
-        uint _num_beneficiaries = num_beneficiaries.current();
+        uint _num_benefs = num_beneficiaries.current();
         
         // calculate this beneficiary's share of current funds.
-        uint benefShare = SafeMath.div(address(this).balance, _num_beneficiaries);
+        uint benefShare = SafeMath.div(address(this).balance, _num_benefs);
         
         // record beneficiary.
         beneficiaries[_benef] = Beneficiary(benefShare, false, true);
@@ -64,8 +64,8 @@ contract Will {
         return address(this).balance;
     }
     
-    function _isBeneficiary() internal view returns(bool) {
-        Beneficiary memory benef = beneficiaries[tx.origin];
+    function _isBeneficiary(address _benef) internal view returns(bool) {
+        Beneficiary memory benef = beneficiaries[_benef];
         return benef.exists;
     }
     
@@ -73,7 +73,7 @@ contract Will {
         // get benef's share of funds based on current balance 
         // and benef's split of funds (currently assumed to be full balance / num_beneficiaries).
         
-        require(_isBeneficiary(), "This address does not belong to a beneficiary of this will.");
+        require(_isBeneficiary(_benef), "This address does not belong to a beneficiary of this will.");
         Beneficiary memory benef = beneficiaries[_benef];
         return benef.balance;
         
@@ -97,8 +97,15 @@ contract Will {
     }
     
     
-    function depositFunds() public payable {
-        // uint val = msg.value;
+    function depositFunds() public payable onlyOwner {
+        uint val = msg.value;
+        uint _num_benefs = num_beneficiaries.current();
+        uint share = SafeMath.div(val, _num_benefs);
+        for (uint i=0; i<_num_benefs; i++) {
+            address _address = beneficiariesList[i];
+            Beneficiary memory benef = beneficiaries[_address];
+            benef.balance += share;
+        }
     }
     
     function getBeneficiaries() public view onlyOwner returns(address[] memory) {
