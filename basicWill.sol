@@ -73,8 +73,6 @@ contract Will {
     
     function getBenefBalance(address _benef) public view returns(uint) {
         // get benef's share of funds based on current balance 
-        // and benef's split of funds (currently assumed to be full balance / num_beneficiaries).
-        
         require(_isBeneficiary(_benef), "This address does not belong to a beneficiary of this will.");
         Beneficiary memory benef = beneficiaries[_benef];
         return benef.balance;
@@ -103,14 +101,10 @@ contract Will {
     function depositFunds() public payable onlyOwner {
         require(!willActivated, "Funds cannot be deposited after will is activated.");
         uint val = msg.value;
-        // uint _num_benefs = num_beneficiaries.current();
         uint _num_benefs = beneficiariesList.length;
         uint share = SafeMath.div(val, _num_benefs);
         for (uint i=0; i<_num_benefs; i++) {
             address _address = beneficiariesList[i];
-            // Beneficiary memory benef = beneficiaries[_address];
-            // uint current_bal = benef.balance;
-            // beneficiaries[_address] = benef(current_bal + share);
             uint current_bal = beneficiaries[_address].balance;
             Beneficiary memory benef = Beneficiary(current_bal + share, false, true);
             beneficiaries[_address] = benef;
