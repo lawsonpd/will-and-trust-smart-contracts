@@ -7,7 +7,9 @@ import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contr
 
 
 /*
-    Include link to actual will on IPFS?
+    @future include link to actual will on IPFS?
+    
+    @future ability to remove a beneficiary
 */
 
 contract Will {
@@ -15,7 +17,7 @@ contract Will {
     // using EnumerableSet for EnumerableSet.AddressSet;
     
     // record the number of beneficiaries on the will.
-    Counters.Counter num_beneficiaries;
+    Counters.Counter public num_beneficiaries;
     
     // owner would be person with power of attorney, so that when benefactor passes away,
     // the will can be activated and funds will be available for withdrawal.
@@ -27,8 +29,8 @@ contract Will {
     struct Beneficiary {
         uint balance;
         bool hasWithdrawn;
-        // to check for existence:
-        bool exists;
+        // to check for existence
+        bool exists; // this is always true
     }
     
     mapping(address => Beneficiary) beneficiaries;
@@ -93,18 +95,26 @@ contract Will {
     }
     
     function activateWill() public onlyOwner {
+        // may be good to require that will balance is not 0
         willActivated = true;
     }
     
     
     function depositFunds() public payable onlyOwner {
+        require(!willActivated, "Funds cannot be deposited after will is activated.");
         uint val = msg.value;
-        uint _num_benefs = num_beneficiaries.current();
+        // uint _num_benefs = num_beneficiaries.current();
+        uint _num_benefs = beneficiariesList.length;
         uint share = SafeMath.div(val, _num_benefs);
         for (uint i=0; i<_num_benefs; i++) {
             address _address = beneficiariesList[i];
-            Beneficiary memory benef = beneficiaries[_address];
-            benef.balance += share;
+            // Beneficiary memory benef = beneficiaries[_address];
+            // uint current_bal = benef.balance;
+            // beneficiaries[_address] = benef(current_bal + share);
+            uint current_bal = beneficiaries[_address].balance;
+            Beneficiary memory benef = Beneficiary(current_bal + share, false, true);
+            beneficiaries[_address] = benef;
+            
         }
     }
     
