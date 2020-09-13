@@ -50,6 +50,7 @@ contract Will {
     constructor () public {}
     
     function addBeneficiary(address _benef) public onlyOwner {
+        require(!willActivated, "Beneficiaries cannot be added after will has been activated.");
         // increment number of beneficiaries currently on will.
         num_beneficiaries.increment();
         uint _num_benefs = num_beneficiaries.current();
