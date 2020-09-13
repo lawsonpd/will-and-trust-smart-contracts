@@ -3,7 +3,7 @@ pragma solidity ^0.6.0;
 
 import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/math/SafeMath.sol";
 import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/utils/Counters.sol";
-
+import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/utils/EnumerableSet.sol";
 
 /*
     @future include link to actual will on IPFS?
@@ -13,9 +13,11 @@ import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contr
 
 contract Will {
     using Counters for Counters.Counter;
+    using EnumerableSet for EnumerableSet.AddressSet;
     
     // record benefactors.
-    mapping(address => bool) isBenefactor;
+    // mapping(address => bool) isBenefactor;
+    EnumerableSet.AddressSet benefactors;
     
     // track whether will is active.
     mapping(address => bool) willActivated;
@@ -31,8 +33,11 @@ contract Will {
     // `address` is benefactor.
     mapping(address => uint) numBeneficiaries;
     
+    // owner => beneficiaries
+    mapping(address => address[]) beneficiaries;
+    
     struct Beneficiary {
-        uint balance; // needed? alt'y just track who has withdrawn and let withdraw amount be balance / num_benefs.
+        // uint balance; // needed? alt'y just track who has withdrawn and let withdraw amount be balance / num_benefs.
         bool hasWithdrawn;
         bool exists; // to check for existence. this is always true.
     }
@@ -41,7 +46,8 @@ contract Will {
         /**
          * an Owner is assumed to be either a benefactor or entity with power of attorney.
         */
-        return isBenefactor[msg.sender];
+        // return isBenefactor[msg.sender];
+        return benefactors.contains(msg.sender);
     }
     
     modifier onlyOwner() {
@@ -51,18 +57,11 @@ contract Will {
     
     // constructor () public {}
     
-    function addBeneficiary(address _beneficiary) public {
-        // balance of this will
-        uint balance = willBalances[msg.sender];
-        
-        // number of beneficiaries on this will
-        uint _numBeneficiaries = numBeneficiaries[msg.sender] + 1; // add 1 to count this beneficiary
-        
-        // this beneficiary's share
-        uint benefShare = SafeMath.div(balance, _numBeneficiaries);
+    function addBeneficiary(address _beneficiary) public onlyOwner {
+        require(!willActivated[msg.sender], "Beneficiaries cannot be added after will has been activated.");
         
         // add beneficiary to will
-        Beneficiary memory benef = Beneficiary(benefShare, false, true);
+        Beneficiary memory benef = Beneficiary(false, true); // false: has not withdrawn; true: exists for lookup.
         wills[msg.sender][_beneficiary] = benef;
         
         // increment number of beneficiaries on this will
@@ -70,7 +69,7 @@ contract Will {
     }
     
     function _isBenefactor(address _benefactor) internal view returns(bool) {
-        return isBenefactor[_benefactor];
+        return benefactors.contains(_benefactor);
     }
     
     function _isBeneficiary(address _beneficiary) internal view returns(bool) {
@@ -88,30 +87,29 @@ contract Will {
          * 
          * a crude solution will be to decrement numBeneficiaries when a benef withdraws.
         */
+        
     }
     
-    function activateWill() public {
+    function activateWill() public onlyOwner {
     }
     
     function getWillBalance() public view returns(uint) {
     }
     
     function createWill() public payable {
-        isBenefactor[msg.sender] = true;
+        // isBenefactor[msg.sender] = true;
+        benefactors.add(msg.sender);
         willBalances[msg.sender] = msg.value; // keep? if not, remove payable and allow deposits via depositFunds().
         willActivated[msg.sender] = false; // necessary? alt'y just set to true when activated.
     }
     
     function depositFunds() public payable {
         require(!willActivated[msg.sender], "Funds cannot be deposited after will has been activated.");
-        uint val = msg.value;
-        uint _num_benefs = numBeneficiaries[msg.sender];
-        uint share = SafeMath.div(val, _num_benefs);
-        for (uint i=0; i<_num_benefs; i++) {
-        }
+        willBalances[msg.sender] += msg.value;
     }
     
-    function getBeneficiaries() public view returns(address[] memory) {
+    function getBeneficiariesOfWill() public view onlyOwner returns(address[] memory) {
+        return beneficiaries[msg.sender];
     }
     
 }
