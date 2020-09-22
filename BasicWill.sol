@@ -46,7 +46,20 @@ contract Will {
     }
     
     modifier onlyOwner() {
-        require(_isOwner());
+        require(_isOwner(), "Only the owner of the will can perform this operation.");
+        _;
+    }
+    
+    function _isBeneficiary(address _benef) 
+        internal 
+        view 
+    returns(bool) {
+        Beneficiary memory benef = beneficiaries[_benef];
+        return benef.exists;
+    }
+
+    modifier onlyBeneficiaries() {
+        require(_isBeneficiary(), "This address is not a beneficiary of this will.");
         _;
     }
 
@@ -59,6 +72,7 @@ contract Will {
 
     modifier notActive() {
         require(!willActivated, "This action cannot be taken after will has been activated.");
+        _;
     }
     
     constructor () public {}
@@ -88,20 +102,12 @@ contract Will {
         return address(this).balance;
     }
     
-    function _isBeneficiary(address _benef) 
-        internal 
-        view 
-    returns(bool) {
-        Beneficiary memory benef = beneficiaries[_benef];
-        return benef.exists;
-    }
-    
     function getBenefBalance(address _benef) 
         public 
         view 
+        onlyBeneficiaries
     returns(uint) {
-        // get benef's share of funds based on current balance 
-        require(_isBeneficiary(_benef), "This address does not belong to a beneficiary of this will.");
+        // get benef's share of funds based on current balance
         Beneficiary memory benef = beneficiaries[_benef];
         return benef.balance;
         
@@ -110,6 +116,7 @@ contract Will {
     function withdraw() 
         public 
         notActive
+        onlyBeneficiaries
     {
         Beneficiary memory benef = beneficiaries[msg.sender];
         
@@ -124,11 +131,11 @@ contract Will {
     function activateWill() 
         public 
         onlyOwner 
+        notActive
     {
         // may be good to require that will balance is not 0
         willActivated = true;
     }
-    
     
     function depositFunds() 
         public 
