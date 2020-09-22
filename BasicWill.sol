@@ -38,7 +38,7 @@ contract Will {
     // whether will is active for funds to be withdrawn.
     bool public willActivated = false;
     
-    function isOwner() 
+    function _isOwner() 
         public 
         view 
     returns(bool) {
@@ -46,8 +46,19 @@ contract Will {
     }
     
     modifier onlyOwner() {
-        require(isOwner());
+        require(_isOwner());
         _;
+    }
+
+    function _isActive()
+        public
+        view
+    returns(bool) {
+        return willActivated;
+    }
+
+    modifier notActive() {
+        require(!willActivated, "This action cannot be taken after will has been activated.");
     }
     
     constructor () public {}
@@ -55,8 +66,8 @@ contract Will {
     function addBeneficiary(address _benef) 
         public 
         onlyOwner 
+        notActive
     {
-        require(!willActivated, "Beneficiaries cannot be added after will has been activated.");
         // increment number of beneficiaries currently on will.
         num_beneficiaries.increment();
         uint _num_benefs = num_beneficiaries.current();
@@ -97,9 +108,9 @@ contract Will {
     }
     
     function withdraw() 
-        public {
-        require(willActivated == true, "Will is not yet active. Funds cannot be withdrawn at this time.");
-        
+        public 
+        notActive
+    {
         Beneficiary memory benef = beneficiaries[msg.sender];
         
         uint bal = benef.balance;
@@ -123,8 +134,8 @@ contract Will {
         public 
         payable 
         onlyOwner 
+        notActive
     {
-        require(!willActivated, "Funds cannot be deposited after will is activated.");
         uint val = msg.value;
         uint _num_benefs = beneficiariesList.length;
         uint share = SafeMath.div(val, _num_benefs);
