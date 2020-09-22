@@ -56,12 +56,10 @@ contract SimpleTrust {
         view 
         onlyBenefs 
     returns(uint[2] memory) {
-        uint daysTilUnlock;
+        uint daysTilUnlock = 0;
         if (now < unlockTime) {
             uint secsTilUnlock = SafeMath.sub(now, unlockTime);
-            daysTilUnlock = SafeMath.div(secsTilUnlock, 60 * 60 * 24);
-        } else {
-            daysTilUnlock = 0;
+            daysTilUnlock += SafeMath.div(secsTilUnlock, 60 * 60 * 24);
         }
         uint[2] memory info = [balance, daysTilUnlock];
         return info;
