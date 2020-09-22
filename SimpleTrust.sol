@@ -15,7 +15,7 @@ contract SimpleTrust {
         public 
     {
         beneficiary = _beneficiary;
-        unlockTime = _unlockTime;
+        unlockTime = _unlockTime; // timestamp
     }
     
     function _isBenef() 
