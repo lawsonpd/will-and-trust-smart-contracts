@@ -30,23 +30,25 @@ contract SimpleTrust {
         _;
     }
 
-    function _unlocked()
+    function _isUnlocked()
         internal
         view
     returns(bool) {
         return now >= unlockTime;
     }
 
-    modifier unlockReq() {
-        require(_unlocked, "Trust is still locked.");
+    modifier reqUnlocked() {
+        require(_isUnlocked, "Trust is still locked.");
     }
     
     function withdraw() 
         public 
         onlyBenefs 
-        unlockReq
+        reqUnlocked
     {
-        beneficiary.transfer(balance);
+        uint val = beneficiary.transfer(balance);
+        beneficiary.balance = 0;
+        msg.sender.transfer(val);
     }
     
     function getTrustDetails() 
