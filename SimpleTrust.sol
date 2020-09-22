@@ -18,7 +18,7 @@ contract SimpleTrust {
         unlockTime = _unlockTime;
     }
     
-    function isBenef() 
+    function _isBenef() 
         internal 
         view 
     returns(bool) {
