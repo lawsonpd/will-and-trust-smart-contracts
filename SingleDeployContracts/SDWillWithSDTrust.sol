@@ -3,7 +3,7 @@ pragma solidity ^0.6.0;
 
 import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/math/SafeMath.sol";
 import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/utils/EnumerableSet.sol";
-import "./SimpleTrust.sol";
+import "./SDTrust.sol";
 
 /*
     @future include link to actual will on IPFS?
@@ -29,7 +29,7 @@ contract SDWill {
     // track who owns/admins which will
     mapping(address => Will) private wills;
     
-    address trustContract = address(0); // insert trust contract address here
+    address payable trustContract = address(0); // * * * insert trust contract address here
     
     function _isOwner() internal view returns(bool) {
         /**
@@ -83,8 +83,8 @@ contract SDWill {
         
         will.trustBeneficiaries.push(_trustBenef);
         
-        SimpleTrust trust = SimpleTrust(trustContract);
-        trust.addBenef(_trustBenef, _unlockTime);
+        SDTrust trust = SDTrust(trustContract);
+        trust.addTrust(_trustBenef, _unlockTime);
     }
     
     function depositFunds() public payable {
@@ -114,8 +114,9 @@ contract SDWill {
             benef.transfer(share);
         }
         
-        SimpleTrust sTrust = SimpleTrust(trustContract);
-        sTrust.distribute(numTrusts, share);
+        SDTrust sTrust = SDTrust(trustContract);
+        // sTrust.distribute(numTrusts, share);
+        sTrust.distribute(will.beneficiaries, share);
     }
     
 }

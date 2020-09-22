@@ -4,60 +4,81 @@ pragma solidity ^0.6.0;
 import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/math/SafeMath.sol";
 import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/utils/EnumerableSet.sol";
 
-/*
-
- * @future a beneficiary may have more than one trust.
- 
- * @future do we need an `onlyOwners` modifier in this contract or can it be enforced via SDWillWithTrust?
- 
- */
-
-contract SimpleTrust {
+contract SDTrust {
     using EnumerableSet for EnumerableSet.AddressSet;
     
     struct Trust {
-        address beneficiary;
         uint unlockTime;
         uint balance; // starts at 0 and is set when will is activated
     }
     
-    // address is owner
-    // purpose is to make sure a beneficiary is in the set of a will owner's beneficiaries
-    mapping(address => EnumerableSet.AddressSet) benefs;
+    // to check whether a beneficiary is in the set of a will owner's beneficiaries
+    // key address is owner
+    mapping(address => EnumerableSet.AddressSet) private benefs;
     
-    // address is will owner
-    mapping(address => Trust[]) private trusts;
+    // first key address is owner; second is beneficiary
+    mapping(address => mapping(address => Trust)) trusts;
     
-    // address is beneficiary
-    mapping(address => Trust[]) private benefTrusts;
     
-    function addTrust(address _owner, address _beneficiary, uint _unlockTime) external {
-        /**
-         * this should only be callable by the *will* owner
-         */
-        require(_owner == tx.origin, "Only a will owner can call this function."); // enforce ownership; assert or require?
-        
-        Trust memory trust = Trust(_beneficiary, _unlockTime, 0); // initialize with 0 balance; funds added with `distribute`
-        trusts[_owner].push(trust);
-        benefTrusts[_beneficiary].push(trust);
-        benefs[_owner].add(_beneficiary); // new
+    
+    function _isBenef(address _owner) internal view returns(bool) {
+        return benefs[_owner].contains(msg.sender);
     }
     
-    function distribute(address _owner, uint _share) external payable {
-        require(_owner == tx.origin, "Only a will owner can call this function."); // enforce ownership; assert or require?
-        
-        Trust[] storage _trusts = trusts[_owner];
-        for (uint i=0; i<_trusts.length; i++) {
-            _trusts[i].balance += _share;
+    modifier onlyBenef(address _owner) {
+        require(_isBenef(_owner), "You are not a beneficiary of this trust.");
+        _;
+    }
+    
+    function _isOwner(address _owner) internal view returns(bool) {
+        return _owner == tx.origin;
+    }
+    
+    modifier onlyOwner(address _owner) {
+        require(_isOwner(_owner), "Only a will owner can call this function.");
+        _;
+    }
+    
+    
+    
+    function addTrust(address _beneficiary, uint _unlockTime) external onlyOwner(tx.origin) {
+        Trust memory trust = Trust(_unlockTime, 0); // initialize with 0 balance; funds added with `distribute`
+        address owner = tx.origin;
+        trusts[owner][_beneficiary] = trust;
+        benefs[owner].add(_beneficiary); // new
+    }
+    
+    function distribute(address[] calldata _benefs, uint _share) external payable onlyOwner(tx.origin) {
+        address owner = tx.origin;
+        for (uint i=0; i<_benefs.length; i++) {
+            trusts[owner][_benefs[i]].balance += _share;
         }
     }
     
-    function withdraw(address _willOwner) public {
+    function withdraw(address _willOwner) public onlyBenef(_willOwner) {
         /*
           * this could be structured so that if beneficiary has multiple trusts,
           * this fn loops through list of trusts and withdraws any available funds.
         */
+        address benef = msg.sender;
+        Trust storage trust = trusts[_willOwner][benef];
+        require(now >= trust.unlockTime, "This trust has not yet been unlocked.");
         
+        uint val = trust.balance;
+        trust.balance = 0;
+        msg.sender.transfer(val);
+        
+    }
+    
+    function getTimeTilUnlockInSeconds(address _willOwner) public view onlyBenef(_willOwner) returns(uint) {
+        address benef = msg.sender;
+        Trust memory trust = trusts[_willOwner][benef];
+        if (now >= trust.unlockTime) {
+            return 0;
+        } else {
+            uint _timeTilUnlock = SafeMath.sub(now, trust.unlockTime);
+            return _timeTilUnlock;
+        }
     }
     
     // function getTrustInfo() public view returns(uint[] memory) {
@@ -77,6 +98,10 @@ contract SimpleTrust {
     //     return _trustInfo;
     // }
     
-    receive() external payable {}
+    receive() external payable {
+        /*
+            distribute funds to all beneficiaries in `benefs` (AddressSet)
+        */
+    }
 
 }

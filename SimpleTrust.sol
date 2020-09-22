@@ -1,60 +1,49 @@
 pragma solidity ^0.6.0;
-// SPDX-License-Identifier: MIT;
+// SPDX-License-Identifier: GPL;
 
 import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/math/SafeMath.sol";
 
-/*
 
- * @future a beneficiary may have more than one trust.
- 
- * @future do we need an `onlyOwners` modifier in this contract or can it be enforced via SDWillWithTrust?
- 
- */
 
 contract SimpleTrust {
     
-    struct Trust {
-        address beneficiary;
-        uint unlockTime;
-        uint balance; // starts at 0 and is set when will is activated
+    address payable private beneficiary;
+    uint private balance;
+    uint private unlockTime;
+    
+    constructor (address payable _beneficiary, uint _unlockTime) public {
+        beneficiary = _beneficiary;
+        unlockTime = _unlockTime;
     }
     
-    // address is will owner
-    mapping(address => Trust[]) private trusts;
-    
-    // address is beneficiary
-    mapping(address => Trust) private benefTrusts;
-    
-    function addBenef(address _trustBenef, uint _unlockTime) external {
-        Trust memory _trust = Trust(_trustBenef, _unlockTime, 0);
-        trusts[tx.origin].push(_trust);
-        benefTrusts[_trustBenef] = _trust;
+    function isBenef() internal view returns(bool) {
+        return msg.sender == beneficiary;
     }
     
-    function distribute(uint _numTrusts, uint _share) external {
-        Trust[] storage _trusts = trusts[tx.origin];
-        for (uint i=0; i<_numTrusts; i++) {
-            _trusts[i].balance += _share;
-        }
+    modifier onlyBenefs() {
+        require(isBenef(), "You are not the beneficiary of this trust.");
+        _;
     }
     
-    function withdraw() public {
-        Trust storage _trust = benefTrusts[msg.sender];
-        require(now >= _trust.unlockTime, "This trust has not yet been unlocked.");
-        
-        uint val = _trust.balance;
-        _trust.balance = 0;
-        msg.sender.transfer(val);
+    function withdraw() public onlyBenefs {
+        require(now >= unlockTime, "Trust is still locked.");
+        beneficiary.transfer(balance);
     }
     
-    function getTimeTilUnlockInSeconds() public view returns(uint) {
-        Trust memory _trust = benefTrusts[msg.sender];
-        if (now >= _trust.unlockTime) {
-            return 0;
+    function getTrustDetails() public view onlyBenefs returns(uint[2] memory) {
+        uint daysTilUnlock;
+        if (now < unlockTime) {
+            uint secsTilUnlock = SafeMath.sub(now, unlockTime);
+            daysTilUnlock = SafeMath.div(secsTilUnlock, 60 * 60 * 24);
         } else {
-            uint _timeTilUnlock = SafeMath.sub(now, _trust.unlockTime);
-            return _timeTilUnlock;
+            daysTilUnlock = 0;
         }
+        uint[2] memory info = [balance, daysTilUnlock];
+        return info;
+    }
+    
+    receive() external payable {
+        balance += msg.value;
     }
 
 }
