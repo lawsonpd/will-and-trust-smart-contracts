@@ -4,38 +4,29 @@ pragma solidity ^0.6.0;
 import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/math/SafeMath.sol";
 import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/utils/EnumerableSet.sol";
 
-/*
-    @future include link to actual will on IPFS?
-    
-    @future ability to remove a beneficiary
 
-    @future do we really need `numBeneficiaries` if we can check the length of Will.beneficiaries?
-*/
 
 contract SDWill {
+    /*
+        @future include link to actual will on IPFS?
+        
+        @future ability to remove a beneficiary.
+        
+        @future consider adding `return true;` to functions that only modify but don't have return value.
+    */
+    
     using EnumerableSet for EnumerableSet.AddressSet;
     
     // record benefactors for onlyOwners modifier
-    EnumerableSet.AddressSet private benefactors;
+    EnumerableSet.AddressSet private owners;
     
     struct Will {
-        address owner;
         uint balance;
-        bool isActive;
-        EnumerableSet.AddressSet beneficiaries;
-        mapping(address => Beneficiary) beneficiaryDetails;
+        bool executed;
+        address[] beneficiaries;
     }
     
-    struct Beneficiary {
-        bool hasWithdrawn;
-        uint balance;
-    }
-    
-    // track number of beneficiaries on a will.
-    // this will be incremented as benef's are added and decremented as they withdraw.
-    mapping(address => uint) private numBeneficiaries;
-    
-    // track who owns which will
+    // track who owns/admins which will
     mapping(address => Will) private wills;
     
     function _isOwner() 
@@ -43,101 +34,96 @@ contract SDWill {
         view 
     returns(bool) {
         /**
-         * an Owner is assumed to be either a benefactor or entity with power of attorney.
+         * an Owner is assumed to be either a benefactor or agent with power of attorney.
         */
-        return benefactors.contains(msg.sender);
+        return owners.contains(msg.sender);
     }
     
-    modifier onlyOwner() {
+    modifier onlyOwners() {
         require(_isOwner());
         _;
     }
     
-    function _isBeneficiary(address _owner) 
-        internal 
-        view 
-    returns(bool) {
-        
-    }
+    constructor () public {}
     
-    function _isBenefactor(address _benefactor) 
-        internal 
-        view 
-    returns(bool) {
-        return benefactors.contains(_benefactor);
-    }
-    
-    // constructor () public {}
-    
-    function addBeneficiary(address _beneficiary) 
+    function createWill(address[] memory _beneficiaries) 
         public 
-        onlyOwner 
+        payable 
     {
-        require(!willActivated[msg.sender], "Beneficiaries cannot be added after will has been activated.");
-        
-        numBeneficiaries[msg.sender] += 1;
-        
-        // add beneficiary to will
-        // benef id's will start at 1
-        uint id = numBeneficiaries[msg.sender];
-        Beneficiary memory benef = Beneficiary(id, false, true); // false: has not withdrawn; true: exists.
-        beneficiaries[msg.sender][_beneficiary] = benef;
-        wills[_beneficiary].push(msg.sender);
-    }
-    
-    function withdraw(address _owner) 
-        public 
-    {
-        //  challenge here is that if we don't have a way to update beneficiaries' balances
-        //  when depositing funds (because no lookup), then, if calculation is based on num of benef's,
-        //  then after one benef withdraws the calculation for the remaining will be wrong because one
-        //  has withdrawn but the calculation will assume there are still n (and not n-1) benef's.
-         
-        //  a crude solution would be to decrement numBeneficiaries when a benef withdraws.
-        
-        // calculate beneficiary's share
-        uint willBalance = willBalances[_owner];
-        uint numBenefs = numBeneficiaries[_owner];
-        uint benefShare = SafeMath.div(willBalance, numBenefs);
-        
-        // decrement numBeneficiaries
-        numBeneficiaries[_owner] -= 1;
-        
-        Beneficiary memory benef = beneficiaries[_owner];
-        
-        // transfer funds to beneficiary
-        msg.sender.transfer(benefShare);
-        
-    }
-    
-    function activateWill() 
-        public 
-        onlyOwner 
-    {
-        willActivated[msg.sender] = true;
+        owners.add(msg.sender);
+        Will memory will = Will(msg.value, false, _beneficiaries);
+        wills[msg.sender] = will;
     }
     
     function getWillBalance() 
         public 
         view 
-        onlyOwner 
+        onlyOwners 
     returns(uint) {
-        return willBalances[msg.sender];
+        Will memory will = wills[msg.sender];
+        return will.balance;
     }
     
-    function createWill() 
+    function listBeneficiaries() 
         public 
-        payable 
+        view 
+        onlyOwners 
+    returns(address[] memory) {
+        Will memory will = wills[msg.sender];
+        return will.beneficiaries;
+    }
+    
+    function changeOwner(address _newOwner) 
+        public 
+        onlyOwners 
     {
-        benefactors.add(msg.sender);
+        /*
+          * do we need to set wills[msg.sender] to null or equivalent?
+        */
+        Will storage will = wills[msg.sender];
+        owners.remove(msg.sender);
+        owners.add(_newOwner);
+        wills[_newOwner] = will;
+    }
+    
+    function addBeneficiary(address _beneficiary) 
+        public 
+        onlyOwners 
+    {
+        Will storage will = wills[msg.sender];
+        require(!will.executed, "Beneficiaries cannot be added after will has been executed.");
+        will.beneficiaries.push(_beneficiary);
     }
     
     function depositFunds() 
         public 
         payable 
     {
-        require(!willActivated[msg.sender], "Funds cannot be deposited after will has been activated.");
-        willBalances[msg.sender] += msg.value;
+        Will storage will = wills[msg.sender];
+        require(!will.executed, "Funds cannot be deposited after will has been executed.");
+        will.balance = msg.value;
+    }
+    
+    function executeWill() 
+        public 
+        onlyOwners 
+    {
+        Will storage will = wills[msg.sender];
+        require(!will.executed, "Will has already been executed.");
+        
+        will.executed = true;
+        
+        uint numBenefs = will.beneficiaries.length;
+        
+        uint bal = will.balance;
+        will.balance = 0;
+        
+        uint share = SafeMath.div(bal, numBenefs);
+        
+        for (uint i=0; i<numBenefs; i++) {
+            address payable benef = address(uint160(will.beneficiaries[i]));
+            benef.transfer(share);
+        }
     }
     
 }
