@@ -29,12 +29,23 @@ contract SimpleTrust {
         require(isBenef(), "You are not the beneficiary of this trust.");
         _;
     }
+
+    function _unlocked()
+        internal
+        view
+    returns(bool) {
+        return now >= unlockTime;
+    }
+
+    modifier reqUnlocked() {
+        require(_unlocked, "Trust is still locked.");
+    }
     
     function withdraw() 
         public 
         onlyBenefs 
+        reqUnlocked
     {
-        require(now >= unlockTime, "Trust is still locked.");
         beneficiary.transfer(balance);
     }
     
