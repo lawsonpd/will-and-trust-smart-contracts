@@ -46,7 +46,7 @@ contract SDWill {
         return benefactors.contains(msg.sender);
     }
     
-    modifier onlyOwners() {
+    modifier onlyOwner() {
         require(_isOwner());
         _;
     }
@@ -69,7 +69,7 @@ contract SDWill {
     
     function addBeneficiary(address _beneficiary) 
         public 
-        onlyOwners 
+        onlyOwner 
     {
         require(!willActivated[msg.sender], "Beneficiaries cannot be added after will has been activated.");
         
@@ -110,7 +110,7 @@ contract SDWill {
     
     function activateWill() 
         public 
-        onlyOwners 
+        onlyOwner 
     {
         willActivated[msg.sender] = true;
     }
@@ -118,7 +118,7 @@ contract SDWill {
     function getWillBalance() 
         public 
         view 
-        onlyOwners 
+        onlyOwner 
     returns(uint) {
         return willBalances[msg.sender];
     }
