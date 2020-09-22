@@ -50,28 +50,28 @@ contract Will {
         _;
     }
     
-    function _isBeneficiary(address _benef) 
+    function _isBeneficiary() 
         internal 
         view 
     returns(bool) {
-        Beneficiary memory benef = beneficiaries[_benef];
+        Beneficiary memory benef = beneficiaries[msg.sender];
         return benef.exists;
     }
 
-    modifier onlyBeneficiaries() {
+    modifier onlyBeneficiary() {
         require(_isBeneficiary(), "This address is not a beneficiary of this will.");
         _;
     }
 
-    function _isActive()
+    function _willIsActive()
         public
         view
     returns(bool) {
         return willActivated;
     }
 
-    modifier notActive() {
-        require(!willActivated, "This action cannot be taken after will has been activated.");
+    modifier willInactive() {
+        require(!_willIsActive(), "This action cannot be taken after will has been activated.");
         _;
     }
     
@@ -80,7 +80,7 @@ contract Will {
     function addBeneficiary(address _benef) 
         public 
         onlyOwner 
-        notActive
+        willInactive
     {
         // increment number of beneficiaries currently on will.
         num_beneficiaries.increment();
@@ -105,7 +105,7 @@ contract Will {
     function getBenefBalance(address _benef) 
         public 
         view 
-        onlyBeneficiaries
+        onlyBeneficiary
     returns(uint) {
         // get benef's share of funds based on current balance
         Beneficiary memory benef = beneficiaries[_benef];
@@ -115,8 +115,8 @@ contract Will {
     
     function withdraw() 
         public 
-        notActive
-        onlyBeneficiaries
+        willInactive
+        onlyBeneficiary
     {
         Beneficiary memory benef = beneficiaries[msg.sender];
         
@@ -131,7 +131,7 @@ contract Will {
     function activateWill() 
         public 
         onlyOwner 
-        notActive
+        willInactive
     {
         // may be good to require that will balance is not 0
         willActivated = true;
@@ -141,7 +141,7 @@ contract Will {
         public 
         payable 
         onlyOwner 
-        notActive
+        willInactive
     {
         uint val = msg.value;
         uint _num_benefs = beneficiariesList.length;
