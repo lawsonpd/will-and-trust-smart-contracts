@@ -17,7 +17,7 @@ contract SDTrust {
     mapping(address => EnumerableSet.AddressSet) private benefs;
     
     // first key address is owner; second is beneficiary
-    mapping(address => mapping(address => Trust)) trusts;
+    mapping(address => mapping(address => Trust)) private trusts;
     
     
     

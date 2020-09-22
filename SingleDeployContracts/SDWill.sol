@@ -16,7 +16,7 @@ contract SDWill {
     using EnumerableSet for EnumerableSet.AddressSet;
     
     // record benefactors for onlyOwners modifier
-    EnumerableSet.AddressSet benefactors;
+    EnumerableSet.AddressSet private benefactors;
     
     struct Will {
         address owner;
@@ -33,10 +33,10 @@ contract SDWill {
     
     // track number of beneficiaries on a will.
     // this will be incremented as benef's are added and decremented as they withdraw.
-    mapping(address => uint) numBeneficiaries;
+    mapping(address => uint) private numBeneficiaries;
     
     // track who owns which will
-    mapping(address => Will) wills;
+    mapping(address => Will) private wills;
     
     function _isOwner() 
         internal 
