@@ -38,7 +38,10 @@ contract Will {
     // whether will is active for funds to be withdrawn.
     bool public willActivated = false;
     
-    function isOwner() public view returns(bool) {
+    function isOwner() 
+        public 
+        view 
+    returns(bool) {
         return msg.sender == owner;
     }
     
@@ -49,7 +52,10 @@ contract Will {
     
     constructor () public {}
     
-    function addBeneficiary(address _benef) public onlyOwner {
+    function addBeneficiary(address _benef) 
+        public 
+        onlyOwner 
+    {
         require(!willActivated, "Beneficiaries cannot be added after will has been activated.");
         // increment number of beneficiaries currently on will.
         num_beneficiaries.increment();
@@ -63,16 +69,26 @@ contract Will {
         beneficiariesList.push(_benef);
     }
     
-    function getWillBalance() public view onlyOwner returns(uint) {
+    function getWillBalance() 
+        public 
+        view 
+        onlyOwner 
+    returns(uint) {
         return address(this).balance;
     }
     
-    function _isBeneficiary(address _benef) internal view returns(bool) {
+    function _isBeneficiary(address _benef) 
+        internal 
+        view 
+    returns(bool) {
         Beneficiary memory benef = beneficiaries[_benef];
         return benef.exists;
     }
     
-    function getBenefBalance(address _benef) public view returns(uint) {
+    function getBenefBalance(address _benef) 
+        public 
+        view 
+    returns(uint) {
         // get benef's share of funds based on current balance 
         require(_isBeneficiary(_benef), "This address does not belong to a beneficiary of this will.");
         Beneficiary memory benef = beneficiaries[_benef];
@@ -80,7 +96,8 @@ contract Will {
         
     }
     
-    function withdraw() public {
+    function withdraw() 
+        public {
         require(willActivated == true, "Will is not yet active. Funds cannot be withdrawn at this time.");
         
         Beneficiary memory benef = beneficiaries[msg.sender];
@@ -93,13 +110,20 @@ contract Will {
         msg.sender.transfer(bal);
     }
     
-    function activateWill() public onlyOwner {
+    function activateWill() 
+        public 
+        onlyOwner 
+    {
         // may be good to require that will balance is not 0
         willActivated = true;
     }
     
     
-    function depositFunds() public payable onlyOwner {
+    function depositFunds() 
+        public 
+        payable 
+        onlyOwner 
+    {
         require(!willActivated, "Funds cannot be deposited after will is activated.");
         uint val = msg.value;
         uint _num_benefs = beneficiariesList.length;
@@ -113,7 +137,11 @@ contract Will {
         }
     }
     
-    function getBeneficiaries() public view onlyOwner returns(address[] memory) {
+    function getBeneficiaries() 
+        public 
+        view 
+        onlyOwner 
+    returns(address[] memory) {
         return beneficiariesList;
     }
     

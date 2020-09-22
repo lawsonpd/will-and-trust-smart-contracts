@@ -21,7 +21,10 @@ contract SDTrust {
     
     
     
-    function _isBenef(address _owner) internal view returns(bool) {
+    function _isBenef(address _owner) 
+        internal 
+        view 
+    returns(bool) {
         return benefs[_owner].contains(msg.sender);
     }
     
@@ -30,7 +33,10 @@ contract SDTrust {
         _;
     }
     
-    function _isOwner(address _owner) internal view returns(bool) {
+    function _isOwner(address _owner) 
+        internal 
+        view 
+    returns(bool) {
         return _owner == tx.origin;
     }
     
@@ -41,21 +47,31 @@ contract SDTrust {
     
     
     
-    function addTrust(address _beneficiary, uint _unlockTime) external onlyOwner(tx.origin) {
+    function addTrust(address _beneficiary, uint _unlockTime) 
+        external 
+        onlyOwner(tx.origin) 
+    {
         Trust memory trust = Trust(_unlockTime, 0); // initialize with 0 balance; funds added with `distribute`
         address owner = tx.origin;
         trusts[owner][_beneficiary] = trust;
         benefs[owner].add(_beneficiary); // new
     }
     
-    function distribute(address[] calldata _benefs, uint _share) external payable onlyOwner(tx.origin) {
+    function distribute(address[] calldata _benefs, uint _share) 
+        external 
+        payable 
+        onlyOwner(tx.origin) 
+    {
         address owner = tx.origin;
         for (uint i=0; i<_benefs.length; i++) {
             trusts[owner][_benefs[i]].balance += _share;
         }
     }
     
-    function withdraw(address _willOwner) public onlyBenef(_willOwner) {
+    function withdraw(address _willOwner) 
+        public 
+        onlyBenef(_willOwner) 
+    {
         /*
           * this could be structured so that if beneficiary has multiple trusts,
           * this fn loops through list of trusts and withdraws any available funds.
@@ -70,7 +86,11 @@ contract SDTrust {
         
     }
     
-    function getTimeTilUnlockInSeconds(address _willOwner) public view onlyBenef(_willOwner) returns(uint) {
+    function getTimeTilUnlockInSeconds(address _willOwner) 
+        public 
+        view 
+        onlyBenef(_willOwner) 
+    returns(uint) {
         address benef = msg.sender;
         Trust memory trust = trusts[_willOwner][benef];
         if (now >= trust.unlockTime) {
@@ -98,7 +118,10 @@ contract SDTrust {
     //     return _trustInfo;
     // }
     
-    receive() external payable {
+    receive() 
+        external 
+        payable 
+    {
         /*
             distribute funds to all beneficiaries in `benefs` (AddressSet)
         */

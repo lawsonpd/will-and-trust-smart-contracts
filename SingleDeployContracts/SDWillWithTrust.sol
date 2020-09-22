@@ -33,7 +33,10 @@ contract SDWill {
     // track who owns/admins which will
     mapping(address => Will) private wills;
     
-    function _isOwner() internal view returns(bool) {
+    function _isOwner() 
+        internal 
+        view 
+    returns(bool) {
         /**
          * an Owner is assumed to be either a benefactor or agent with power of attorney.
         */
@@ -47,24 +50,38 @@ contract SDWill {
     
     constructor () public {}
     
-    function createWill(address[] memory _beneficiaries) public payable {
+    function createWill(address[] memory _beneficiaries) 
+        public 
+        payable 
+    {
         owners.add(msg.sender);
         address[] memory _trusts; // empty array of trust beneficiaries
         Will memory will = Will(msg.value, false, _beneficiaries, _trusts);
         wills[msg.sender] = will;
     }
     
-    function getWillBalance() public view onlyOwners returns(uint) {
+    function getWillBalance() 
+        public 
+        view 
+        onlyOwners 
+    returns(uint) {
         Will memory will = wills[msg.sender];
         return will.balance;
     }
     
-    function listBeneficiaries() public view onlyOwners returns(address[] memory) {
+    function listBeneficiaries() 
+        public 
+        view 
+        onlyOwners 
+    returns(address[] memory) {
         Will memory will = wills[msg.sender];
         return will.beneficiaries;
     }
     
-    function changeOwner(address _newOwner) public onlyOwners {
+    function changeOwner(address _newOwner) 
+        public 
+        onlyOwners 
+    {
         /*
           * do we need to set wills[msg.sender] to null or equivalent?
         */
@@ -74,13 +91,19 @@ contract SDWill {
         wills[_newOwner] = will;
     }
     
-    function addBeneficiary(address _beneficiary) public onlyOwners {
+    function addBeneficiary(address _beneficiary) 
+        public 
+        onlyOwners 
+    {
         Will storage will = wills[msg.sender];
         require(!will.executed, "Beneficiaries cannot be added after will has been executed.");
         will.beneficiaries.push(_beneficiary);
     }
     
-    function addTrust(address payable _beneficiary, uint _unlockTime) public onlyOwners {
+    function addTrust(address payable _beneficiary, uint _unlockTime) 
+        public 
+        onlyOwners 
+    {
         /*
           * _unlockTime is some number of days
         */
@@ -94,13 +117,19 @@ contract SDWill {
         will.trusts.push(address(trust));
     }
     
-    function depositFunds() public payable {
+    function depositFunds() 
+        public 
+        payable 
+    {
         Will storage will = wills[msg.sender];
         require(!will.executed, "Funds cannot be deposited after will has been executed.");
         will.balance = msg.value;
     }
     
-    function executeWill() public onlyOwners {
+    function executeWill() 
+        public 
+        onlyOwners 
+    {
         Will storage will = wills[msg.sender];
         require(!will.executed, "Will has already been executed.");
         

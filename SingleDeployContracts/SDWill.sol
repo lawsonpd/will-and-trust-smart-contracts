@@ -36,7 +36,10 @@ contract SDWill {
     // track who owns which will
     mapping(address => Will) wills;
     
-    function _isOwner() internal view returns(bool) {
+    function _isOwner() 
+        internal 
+        view 
+    returns(bool) {
         /**
          * an Owner is assumed to be either a benefactor or entity with power of attorney.
         */
@@ -48,17 +51,26 @@ contract SDWill {
         _;
     }
     
-    function _isBeneficiary(address _owner) internal view returns(bool) {
+    function _isBeneficiary(address _owner) 
+        internal 
+        view 
+    returns(bool) {
         
     }
     
-    function _isBenefactor(address _benefactor) internal view returns(bool) {
+    function _isBenefactor(address _benefactor) 
+        internal 
+        view 
+    returns(bool) {
         return benefactors.contains(_benefactor);
     }
     
     // constructor () public {}
     
-    function addBeneficiary(address _beneficiary) public onlyOwners {
+    function addBeneficiary(address _beneficiary) 
+        public 
+        onlyOwners 
+    {
         require(!willActivated[msg.sender], "Beneficiaries cannot be added after will has been activated.");
         
         numBeneficiaries[msg.sender] += 1;
@@ -71,7 +83,9 @@ contract SDWill {
         wills[_beneficiary].push(msg.sender);
     }
     
-    function withdraw(address _owner) public {
+    function withdraw(address _owner) 
+        public 
+    {
         //  challenge here is that if we don't have a way to update beneficiaries' balances
         //  when depositing funds (because no lookup), then, if calculation is based on num of benef's,
         //  then after one benef withdraws the calculation for the remaining will be wrong because one
@@ -94,19 +108,32 @@ contract SDWill {
         
     }
     
-    function activateWill() public onlyOwners {
+    function activateWill() 
+        public 
+        onlyOwners 
+    {
         willActivated[msg.sender] = true;
     }
     
-    function getWillBalance() public view onlyOwners returns(uint) {
+    function getWillBalance() 
+        public 
+        view 
+        onlyOwners 
+    returns(uint) {
         return willBalances[msg.sender];
     }
     
-    function createWill() public payable {
+    function createWill() 
+        public 
+        payable 
+    {
         benefactors.add(msg.sender);
     }
     
-    function depositFunds() public payable {
+    function depositFunds() 
+        public 
+        payable 
+    {
         require(!willActivated[msg.sender], "Funds cannot be deposited after will has been activated.");
         willBalances[msg.sender] += msg.value;
     }

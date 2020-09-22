@@ -11,7 +11,9 @@ contract SimpleTrust {
     uint private balance;
     uint private unlockTime;
     
-    constructor (address payable _beneficiary, uint _unlockTime) public {
+    constructor (address payable _beneficiary, uint _unlockTime) 
+        public 
+    {
         beneficiary = _beneficiary;
         unlockTime = _unlockTime;
     }
@@ -25,12 +27,19 @@ contract SimpleTrust {
         _;
     }
     
-    function withdraw() public onlyBenefs {
+    function withdraw() 
+        public 
+        onlyBenefs 
+    {
         require(now >= unlockTime, "Trust is still locked.");
         beneficiary.transfer(balance);
     }
     
-    function getTrustDetails() public view onlyBenefs returns(uint[2] memory) {
+    function getTrustDetails() 
+        public 
+        view 
+        onlyBenefs 
+    returns(uint[2] memory) {
         uint daysTilUnlock;
         if (now < unlockTime) {
             uint secsTilUnlock = SafeMath.sub(now, unlockTime);
@@ -42,7 +51,10 @@ contract SimpleTrust {
         return info;
     }
     
-    receive() external payable {
+    receive() 
+        external 
+        payable 
+    {
         balance += msg.value;
     }
 
