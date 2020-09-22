@@ -8,6 +8,8 @@ import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contr
     @future include link to actual will on IPFS?
     
     @future ability to remove a beneficiary
+
+    @future do we really need `numBeneficiaries` if we can check the length of Will.beneficiaries?
 */
 
 contract SDWill {

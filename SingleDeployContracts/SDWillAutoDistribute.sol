@@ -35,8 +35,21 @@ contract SDWill {
         return owners.contains(msg.sender);
     }
     
-    modifier onlyOwners() {
+    modifier onlyOwner() {
         require(_isOwner());
+        _;
+    }
+
+    function _willIsActive()
+        public
+        view
+    returns(bool) {
+        Will memory will = wills[msg.sender];
+        return !will.executed;
+    }
+
+    modifier willInactive() {
+        require(!_willIsActive(), "This action cannot be taken after will has been activated.");
         _;
     }
     
@@ -55,7 +68,7 @@ contract SDWill {
     function getWillBalance() 
         public 
         view 
-        onlyOwners 
+        onlyOwner 
     returns(uint) {
         Will memory will = wills[msg.sender];
         return will.balance;
@@ -64,7 +77,7 @@ contract SDWill {
     function listBeneficiaries() 
         public 
         view 
-        onlyOwners 
+        onlyOwner 
     returns(address[] memory) {
         Will memory will = wills[msg.sender];
         return will.beneficiaries;
@@ -72,7 +85,7 @@ contract SDWill {
     
     function changeOwner(address _newOwner) 
         public 
-        onlyOwners 
+        onlyOwner 
     {
         Will storage will = wills[msg.sender];
         owners.remove(msg.sender);
@@ -82,28 +95,28 @@ contract SDWill {
     
     function addBeneficiary(address _beneficiary) 
         public 
-        onlyOwners 
+        onlyOwner 
+        willInactive
     {
         Will storage will = wills[msg.sender];
-        require(!will.executed, "Beneficiaries cannot be added after will has been activated.");
         will.beneficiaries.push(_beneficiary);
     }
     
     function depositFunds() 
         public 
         payable 
+        willInactive
     {
         Will storage will = wills[msg.sender];
-        require(!will.executed, "Funds cannot be deposited after will has been activated.");
         will.balance = msg.value;
     }
     
     function executeWill() 
         public 
-        onlyOwners 
+        onlyOwner 
+        willInactive
     {
         Will storage will = wills[msg.sender];
-        require(!will.executed, "Will has already been executed.");
         
         will.executed = true;
         
