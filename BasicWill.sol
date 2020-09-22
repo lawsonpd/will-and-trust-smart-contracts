@@ -18,13 +18,11 @@ contract Will {
     
     // record the number of beneficiaries on the will.
     Counters.Counter public num_beneficiaries;
-    
-    // owner would be person with power of attorney, so that when benefactor passes away,
-    // the will can be activated and funds will be available for withdrawal.
-    address owner = msg.sender;
+
+    address private owner;
     
     // list of beneficiaries.
-    address[] beneficiariesList;
+    address[] private beneficiariesList;
     
     struct Beneficiary {
         uint balance;
@@ -33,10 +31,10 @@ contract Will {
         bool exists; // this is always true
     }
     
-    mapping(address => Beneficiary) beneficiaries;
+    mapping(address => Beneficiary) private beneficiaries;
     
     // whether will is active for funds to be withdrawn.
-    bool public willActivated = false;
+    bool private willActivated = false;
     
     function _isOwner() 
         public 
@@ -75,7 +73,11 @@ contract Will {
         _;
     }
     
-    constructor () public {}
+    constructor () public {
+        // owner would be person with power of attorney, so that when benefactor passes away,
+        // the will can be activated and funds will be available for withdrawal.
+        owner = msg.sender;
+    }
     
     function addBeneficiary(address _benef) 
         public 
