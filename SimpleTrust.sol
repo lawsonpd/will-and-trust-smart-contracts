@@ -18,7 +18,10 @@ contract SimpleTrust {
         unlockTime = _unlockTime;
     }
     
-    function isBenef() internal view returns(bool) {
+    function isBenef() 
+        internal 
+        view 
+    returns(bool) {
         return msg.sender == beneficiary;
     }
     
