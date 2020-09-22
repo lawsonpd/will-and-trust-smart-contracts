@@ -37,14 +37,14 @@ contract SimpleTrust {
         return now >= unlockTime;
     }
 
-    modifier reqUnlocked() {
+    modifier unlockReq() {
         require(_unlocked, "Trust is still locked.");
     }
     
     function withdraw() 
         public 
         onlyBenefs 
-        reqUnlocked
+        unlockReq
     {
         beneficiary.transfer(balance);
     }
