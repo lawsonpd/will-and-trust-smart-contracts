@@ -62,7 +62,7 @@ contract Will {
     }
 
     function _willIsActive()
-        public
+        internal
         view
     returns(bool) {
         return willActivated;

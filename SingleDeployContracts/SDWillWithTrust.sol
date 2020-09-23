@@ -3,7 +3,7 @@ pragma solidity ^0.6.0;
 
 import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/math/SafeMath.sol";
 import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/utils/EnumerableSet.sol";
-import "../SimpleTrust.sol";
+import "./SimpleTrust.sol";
 
 
 
@@ -47,6 +47,19 @@ contract SDWill {
         require(_isOwner());
         _;
     }
+
+    function _willIsActive()
+        internal
+        view
+    returns(bool) {
+        Will memory will = wills[msg.sender];
+        return will.executed;
+    }
+
+    modifier willInactive() {
+        require(!_willIsActive(), "This action cannot be taken after will has been activated.");
+        _;
+    }
     
     constructor () public {}
     
@@ -78,6 +91,15 @@ contract SDWill {
         return will.beneficiaries;
     }
     
+    function listTrustAddresses()
+        public
+        view
+        onlyOwners
+    returns(address[] memory) {
+        Will memory will = wills[msg.sender];
+        return will.trusts;
+    }
+    
     function changeOwner(address _newOwner) 
         public 
         onlyOwners 
@@ -94,44 +116,47 @@ contract SDWill {
     function addBeneficiary(address _beneficiary) 
         public 
         onlyOwners 
+        willInactive
     {
         Will storage will = wills[msg.sender];
-        require(!will.executed, "Beneficiaries cannot be added after will has been executed.");
         will.beneficiaries.push(_beneficiary);
     }
     
     function addTrust(address payable _beneficiary, uint _unlockTime) 
         public 
         onlyOwners 
+        willInactive
+    returns(address)
     {
         /*
           * _unlockTime is some number of days
         */
         
         Will storage will = wills[msg.sender];
-        require(!will.executed, "Beneficiaries cannot be added after will has been executed.");
         
         uint _unlockTimeInSeconds = SafeMath.mul(_unlockTime, 24 * 60 * 60);
         
         SimpleTrust trust = new SimpleTrust(_beneficiary, now + _unlockTimeInSeconds);
         will.trusts.push(address(trust));
+        
+        return address(trust);
     }
     
     function depositFunds() 
         public 
         payable 
+        willInactive
     {
         Will storage will = wills[msg.sender];
-        require(!will.executed, "Funds cannot be deposited after will has been executed.");
         will.balance = msg.value;
     }
     
     function executeWill() 
         public 
         onlyOwners 
+        willInactive
     {
         Will storage will = wills[msg.sender];
-        require(!will.executed, "Will has already been executed.");
         
         will.executed = true;
         

@@ -26,7 +26,7 @@ contract SimpleTrust {
     }
     
     modifier onlyBenefs() {
-        require(isBenef(), "You are not the beneficiary of this trust.");
+        require(_isBenef(), "You are not the beneficiary of this trust.");
         _;
     }
 
@@ -38,7 +38,8 @@ contract SimpleTrust {
     }
 
     modifier reqUnlocked() {
-        require(_isUnlocked, "Trust is still locked.");
+        require(_isUnlocked(), "Trust is still locked.");
+        _;
     }
     
     function withdraw() 
@@ -46,9 +47,9 @@ contract SimpleTrust {
         onlyBenefs 
         reqUnlocked
     {
-        uint val = beneficiary.transfer(balance);
-        beneficiary.balance = 0;
-        msg.sender.transfer(val);
+        uint val = balance;
+        balance = 0;
+        beneficiary.transfer(val);
     }
     
     function getTrustDetails() 
