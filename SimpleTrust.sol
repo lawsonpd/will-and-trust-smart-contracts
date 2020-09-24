@@ -4,7 +4,7 @@ pragma solidity ^0.6.0;
 import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/math/SafeMath.sol";
 
 contract SimpleTrust {
-    address owner; // benefactor or power of attorney
+    address private owner; // benefactor or power of attorney
     
     address payable private beneficiary;
     uint private balance;
