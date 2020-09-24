@@ -3,37 +3,39 @@ pragma solidity ^0.6.0;
 
 import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/math/SafeMath.sol";
 
-
-
 contract SimpleTrust {
+    address owner; // benefactor or power of attorney
     
     address payable private beneficiary;
     uint private balance;
     uint private unlockTime;
     
-    constructor (address payable _beneficiary, uint _unlockTime) 
+    constructor(address _owner, address payable _beneficiary, uint _unlockTime) 
         public 
     {
         beneficiary = _beneficiary;
         unlockTime = _unlockTime; // timestamp
+        owner = _owner;
     }
     
     function _isBenef() 
         internal 
         view 
-    returns(bool) {
+    returns(bool) 
+    {
         return msg.sender == beneficiary;
     }
     
     modifier onlyBenefs() {
-        require(_isBenef(), "You are not the beneficiary of this trust.");
+        require(_isBenef(), "You are not the beneficiary or owner of this trust.");
         _;
     }
 
     function _isUnlocked()
         internal
         view
-    returns(bool) {
+    returns(bool) 
+    {
         return now >= unlockTime;
     }
 
@@ -42,9 +44,38 @@ contract SimpleTrust {
         _;
     }
     
+    function _isOwner()
+        public
+        view
+    returns(bool)
+    {
+        return msg.sender == owner;
+    }
+    
+    modifier onlyBenefOrOwner() {
+        require(_isBenef() || _isOwner(), "Only the trust owner and benficiary can perform this operation.");
+        _;
+    }
+    
+    function getBeneficiary()
+        public
+        view
+        onlyBenefOrOwner
+    returns(address)
+    {
+        return beneficiary;
+    }
+    
+    function depositFunds() 
+        public
+        payable
+    {
+        balance += msg.value;
+    }
+    
     function withdraw() 
         public 
-        onlyBenefs 
+        onlyBenefs
         reqUnlocked
     {
         uint val = balance;
@@ -52,11 +83,12 @@ contract SimpleTrust {
         beneficiary.transfer(val);
     }
     
-    function getTrustDetails() 
+    function getBalanceAndUnlockTime() 
         public 
         view 
-        onlyBenefs 
-    returns(uint[2] memory) {
+        onlyBenefOrOwner
+    returns(uint[2] memory) 
+    {
         uint daysTilUnlock = 0;
         if (now < unlockTime) {
             uint secsTilUnlock = SafeMath.sub(now, unlockTime);
@@ -67,7 +99,7 @@ contract SimpleTrust {
     }
     
     receive() 
-        external 
+        external
         payable 
     {
         balance += msg.value;
