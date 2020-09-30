@@ -1,8 +1,8 @@
 pragma solidity ^0.6.0;
 // SPDX-License-Identifier: GPL;
 
-import "./SimpleWill.sol";
-import "./SimpleTrust.sol";
+import "https://github.com/lawsonpd/will-smart-contract/blob/master/SimpleWill.sol";
+import "https://github.com/lawsonpd/will-smart-contract/blob/master/SimpleTrust.sol";
 
 contract WillAndTrustDeployer {
     address owner = msg.sender;
