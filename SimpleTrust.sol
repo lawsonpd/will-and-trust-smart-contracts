@@ -10,12 +10,12 @@ contract SimpleTrust {
     uint private balance;
     uint private unlockTime;
     
-    constructor(address _owner, address payable _beneficiary, uint _unlockTime) 
+    constructor(address payable _beneficiary, uint _unlockTime) 
         public 
     {
         beneficiary = _beneficiary;
         unlockTime = _unlockTime; // timestamp
-        owner = _owner;
+        owner = tx.origin;
     }
     
     function _isBenef() 

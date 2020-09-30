@@ -17,7 +17,7 @@ contract WillAndTrustDeployer {
         public 
     returns(SimpleWill willAddress) 
     {
-        SimpleWill will = new SimpleWill(msg.sender);
+        SimpleWill will = new SimpleWill();
         wills[msg.sender] = address(will);
         return will;
     }
@@ -26,7 +26,7 @@ contract WillAndTrustDeployer {
         public
     returns(SimpleTrust trustAddress)
     {
-        SimpleTrust trust = new SimpleTrust(msg.sender, _beneficiary, _unlockTime);
+        SimpleTrust trust = new SimpleTrust(_beneficiary, _unlockTime);
         trusts[msg.sender] = address(trust);
         return trust;
     }

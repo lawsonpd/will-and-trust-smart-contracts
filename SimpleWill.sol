@@ -11,16 +11,17 @@ contract SimpleWill {
     // needed to know how many beneficiaries are on the will
     address[] private beneficiaries;
     
+    // beneficiary => balance
     mapping(address => uint) private balances;
     
     bool private willActivated = false;
     
-    constructor(address _owner) 
+    constructor() 
         public 
     {
-        // owner would be person with power of attorney, so that when benefactor passes away,
-        // the will can be activated and funds will be available for withdrawal.
-        owner = _owner;
+        // owner would be person with power of attorney, so that the will 
+        // can be activated and funds will be available for withdrawal.
+        owner = tx.origin;
     }
     
     function _isOwner() 
