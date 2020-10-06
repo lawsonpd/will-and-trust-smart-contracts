@@ -14,7 +14,7 @@ contract SimpleTrust {
         public 
     {
         beneficiary = _beneficiary;
-        unlockTime = _unlockTime; // timestamp
+        unlockTime = _unlockTime;
         owner = tx.origin;
     }
     
@@ -55,6 +55,14 @@ contract SimpleTrust {
     modifier onlyBenefOrOwner() {
         require(_isBenef() || _isOwner(), "Only the trust owner and benficiary can perform this operation.");
         _;
+    }
+    
+    function getOwner()
+        public
+        view
+    returns(address _owner)
+    {
+        _owner = owner;
     }
     
     function getBeneficiary()
