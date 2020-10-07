@@ -22,6 +22,9 @@ contract WillAndTrustDeployer {
         return will;
     }
     
+    /**
+        * @param _unlockTime is some number of days
+    */
     function createTrust(address payable _beneficiary, uint _unlockTime)
         public
     returns(SimpleTrust trustAddress)

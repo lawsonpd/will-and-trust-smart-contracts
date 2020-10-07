@@ -13,8 +13,13 @@ contract SimpleTrust {
     constructor(address payable _beneficiary, uint _unlockTime) 
         public 
     {
+        // Since _unlockTime is some number of days, convert to seconds
+        uint _unlockTimestamp = SafeMath.mul(_unlockTime, 60 * 60 * 24);
+        
         beneficiary = _beneficiary;
-        unlockTime = _unlockTime;
+        
+        // Set unlockTime to a timestamp of now + seconds til unlock
+        unlockTime = SafeMath.add(now, _unlockTimestamp);
         owner = tx.origin;
     }
     
@@ -27,7 +32,7 @@ contract SimpleTrust {
     }
     
     modifier onlyBenefs() {
-        require(_isBenef(), "You are not the beneficiary or owner of this trust.");
+        require(_isBenef(), "You are not the beneficiary of this trust.");
         _;
     }
 
@@ -41,6 +46,16 @@ contract SimpleTrust {
 
     modifier reqUnlocked() {
         require(_isUnlocked(), "Trust is still locked.");
+        _;
+    }
+    
+    /**
+     * @dev This is primarily to restrict deposits to before trust has been unlocked.
+     * It doesn't really make sense to add funds to a trust after the unlock time has
+     * been passed and withdraws may have already been made.
+    */
+    modifier reqLocked() {
+        require(!_isUnlocked(), "This operation can only be performed while trust is locked.");
         _;
     }
     
@@ -77,6 +92,7 @@ contract SimpleTrust {
     function depositFunds() 
         public
         payable
+        reqLocked
     {
         balance += msg.value;
     }
@@ -97,13 +113,25 @@ contract SimpleTrust {
         onlyBenefOrOwner
     returns(uint[2] memory) 
     {
-        uint daysTilUnlock = 0;
-        if (now < unlockTime) {
-            uint secsTilUnlock = SafeMath.sub(now, unlockTime);
-            daysTilUnlock += SafeMath.div(secsTilUnlock, 60 * 60 * 24);
-        }
-        uint[2] memory info = [balance, daysTilUnlock];
+        // uint daysTilUnlock = 0;
+        // if (now < unlockTime) {
+        //     uint secsTilUnlock = SafeMath.sub(now, unlockTime);
+        //     daysTilUnlock += SafeMath.div(secsTilUnlock, 60 * 60 * 24);
+        // }
+        // uint[2] memory info = [balance, daysTilUnlock];
+        uint[2] memory info = [balance, unlockTime];
         return info;
+    }
+    
+    /**
+     * For testing unlock time
+    */
+    function getCurrentBlockTimestamp()
+        public
+        view
+    returns(uint)
+    {
+        return now;
     }
     
     receive() 
