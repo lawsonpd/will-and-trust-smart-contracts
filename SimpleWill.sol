@@ -37,21 +37,13 @@ contract SimpleWill {
         _;
     }
 
-    function _willActive()
-        public
-        view
-    returns(bool) 
-    {
-        return willActivated;
-    }
-
     modifier willInactive() {
-        require(!_willActive(), "This action cannot be taken after will has been activated.");
+        require(!willActivated, "This action cannot be taken after will has been activated.");
         _;
     }
     
     modifier willActive() {
-        require(_willActive(), "This will has not been activated.");
+        require(willActivated, "This will has not been activated.");
         _;
     }
     
