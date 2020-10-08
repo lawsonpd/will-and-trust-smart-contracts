@@ -43,13 +43,6 @@ contract SimpleTrust {
         require(msg.sender == _beneficiary, "Only the beneficiary of this trust can perform this operation.");
         _;
     }
-    
-    modifier onlyBenefOrOwner() {
-        address _owner = getOwner();
-        address _beneficiary = getBeneficiary();
-        require(msg.sender == _beneficiary || msg.sender == _owner, "Only the trust owner and benficiary can perform this operation.");
-        _;
-    }
 
     function isUnlocked()
         public
@@ -93,25 +86,9 @@ contract SimpleTrust {
         beneficiary.transfer(val);
     }
     
-    function getBalanceAndDaysTilUnlock() 
-        public 
-        view 
-        onlyBenefOrOwner
-    returns(uint[2] memory) 
-    {
-        uint daysTilUnlock = 0;
-        if (now < unlockTime) {
-            uint secsTilUnlock = SafeMath.sub(now, unlockTime);
-            daysTilUnlock = SafeMath.div(secsTilUnlock, 60 * 60 * 24);
-        }
-        uint[2] memory info = [balance, daysTilUnlock];
-        return info;
-    }
-    
     function getDaysTilUnlock()
         public
         view
-        // onlyBenefOrOwner // * commented out for testing
     returns(uint _daysTilUnlock)
     {
         _daysTilUnlock = 0;
@@ -124,21 +101,9 @@ contract SimpleTrust {
     function getBalance()
         public
         view
-        // onlyBenefOrOwner // * commented out for testing
     returns(uint _balance)
     {
         _balance = balance;
-    }
-    
-    /**
-     * @dev Primarily for testing unlock time
-    */
-    function getCurrentBlockTimestamp()
-        public
-        view
-    returns(uint)
-    {
-        return now;
     }
     
     receive() 
