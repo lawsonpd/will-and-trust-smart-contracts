@@ -78,7 +78,6 @@ contract SimpleWill {
     function getWillBalance() 
         public 
         view 
-        onlyOwner 
     returns(uint) 
     {
         return willBalance;
@@ -139,7 +138,6 @@ contract SimpleWill {
     function getBeneficiaries() 
         public 
         view 
-        onlyOwner 
     returns(address[] memory) 
     {
         return beneficiaries;
