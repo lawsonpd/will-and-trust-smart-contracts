@@ -58,28 +58,3 @@ contract SimpleTrustTest2 {
         Assert.ok(!trust2.isUnlocked(), "Trust should be locked/inactive.");
     }
 }
-
-// contract SimpleTrustTest3 is SimpleTrust {
-//     address payable acc0;
-//     address payable acc1;
-    
-//     /// 'beforeAll' runs before all other tests
-//     function beforeAll() public {
-//         acc0 = payable(TestsAccounts.getAccount(0));
-//         acc1 = payable(TestsAccounts.getAccount(1));
-//     }
-    
-//     function testTrustOwnership() public {
-//         Assert.equal(getOwner(), acc0, "Trust owner should be acc0.");
-//     }
-    
-//     function testBeneficiaryAddress() public {
-//         Assert.equal(getBeneficiary(), acc1, "Beneficiary should be acc2.");
-//     }
-    
-//     function testTrustActiveOrInactive() public {
-//         uint[2] memory balanceAndUnlocktime = getBalanceAndDaysTilUnlock();
-//         uint daysTilUnlock = balanceAndUnlocktime[1];
-//         Assert.lesserThan(daysTilUnlock, uint(1), "Trust should have 1 day til unlocked.");
-//     }
-// }
