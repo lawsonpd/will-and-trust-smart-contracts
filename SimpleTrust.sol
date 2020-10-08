@@ -115,17 +115,6 @@ contract SimpleTrust {
         _balance = balance;
     }
     
-    /**
-     * @dev Primarily for testing unlock time
-    */
-    function getCurrentBlockTimestamp()
-        public
-        view
-    returns(uint)
-    {
-        return now;
-    }
-    
     receive() 
         external
         payable 
