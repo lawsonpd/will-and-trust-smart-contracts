@@ -22,30 +22,9 @@ contract SimpleTrust {
         unlockTime = SafeMath.add(now, _unlockTimestamp);
         owner = tx.origin;
     }
-    
-    function _isBenef() 
-        internal 
-        view 
-    returns(bool) 
-    {
-        return msg.sender == beneficiary;
-    }
-    
-    modifier onlyBenefs() {
-        require(_isBenef(), "You are not the beneficiary of this trust.");
-        _;
-    }
-
-    function _isUnlocked()
-        internal
-        view
-    returns(bool) 
-    {
-        return now >= unlockTime;
-    }
 
     modifier reqUnlocked() {
-        require(_isUnlocked(), "Trust is still locked.");
+        require(isUnlocked(), "Trust is still locked.");
         _;
     }
     
@@ -55,21 +34,29 @@ contract SimpleTrust {
      * been passed and withdraws may have already been made.
     */
     modifier reqLocked() {
-        require(!_isUnlocked(), "This operation can only be performed while trust is locked.");
+        require(!isUnlocked(), "This operation can only be performed while trust is locked.");
         _;
     }
     
-    function _isOwner()
-        public
-        view
-    returns(bool)
-    {
-        return msg.sender == owner;
+    modifier onlyBenefs() {
+        address _beneficiary = getBeneficiary();
+        require(msg.sender == _beneficiary, "Only the beneficiary of this trust can perform this operation.");
+        _;
     }
     
     modifier onlyBenefOrOwner() {
-        require(_isBenef() || _isOwner(), "Only the trust owner and benficiary can perform this operation.");
+        address _owner = getOwner();
+        address _beneficiary = getBeneficiary();
+        require(msg.sender == _beneficiary || msg.sender == _owner, "Only the trust owner and benficiary can perform this operation.");
         _;
+    }
+
+    function isUnlocked()
+        public
+        view
+    returns(bool) 
+    {
+        return now >= unlockTime;
     }
     
     function getOwner()
@@ -83,16 +70,15 @@ contract SimpleTrust {
     function getBeneficiary()
         public
         view
-        onlyBenefOrOwner
-    returns(address)
+    returns(address _beneficiary)
     {
-        return beneficiary;
+        _beneficiary = beneficiary;
     }
     
     function depositFunds() 
         public
         payable
-        reqLocked
+        reqLocked // Funds shouldn't be deposited after trust has unlocked
     {
         balance += msg.value;
     }
@@ -107,24 +93,45 @@ contract SimpleTrust {
         beneficiary.transfer(val);
     }
     
-    function getBalanceAndUnlockTime() 
+    function getBalanceAndDaysTilUnlock() 
         public 
         view 
         onlyBenefOrOwner
     returns(uint[2] memory) 
     {
-        // uint daysTilUnlock = 0;
-        // if (now < unlockTime) {
-        //     uint secsTilUnlock = SafeMath.sub(now, unlockTime);
-        //     daysTilUnlock += SafeMath.div(secsTilUnlock, 60 * 60 * 24);
-        // }
-        // uint[2] memory info = [balance, daysTilUnlock];
-        uint[2] memory info = [balance, unlockTime];
+        uint daysTilUnlock = 0;
+        if (now < unlockTime) {
+            uint secsTilUnlock = SafeMath.sub(now, unlockTime);
+            daysTilUnlock = SafeMath.div(secsTilUnlock, 60 * 60 * 24);
+        }
+        uint[2] memory info = [balance, daysTilUnlock];
         return info;
     }
     
+    function getDaysTilUnlock()
+        public
+        view
+        // onlyBenefOrOwner // * commented out for testing
+    returns(uint _daysTilUnlock)
+    {
+        _daysTilUnlock = 0;
+        if (now < unlockTime) {
+            uint secsTilUnlock = SafeMath.sub(now, unlockTime);
+            _daysTilUnlock = SafeMath.div(secsTilUnlock, 60 * 60 * 24);
+        }
+    }
+    
+    function getBalance()
+        public
+        view
+        // onlyBenefOrOwner // * commented out for testing
+    returns(uint _balance)
+    {
+        _balance = balance;
+    }
+    
     /**
-     * For testing unlock time
+     * @dev Primarily for testing unlock time
     */
     function getCurrentBlockTimestamp()
         public
