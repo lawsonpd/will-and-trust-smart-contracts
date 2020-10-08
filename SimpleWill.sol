@@ -144,5 +144,13 @@ contract SimpleWill {
     {
         return beneficiaries;
     }
+
+    function changeOwner(address _newOwner)
+        public
+        onlyOwner
+        willInactive
+    {
+        owner = _newOwner;
+    }
     
 }
