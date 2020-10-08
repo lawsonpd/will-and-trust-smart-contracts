@@ -115,9 +115,7 @@ contract SimpleWill {
         willBalance += msg.value;
         
         uint numBeneficiaries = beneficiaries.length;
-        if (numBeneficiaries == 0) {
-            return;
-        } else {
+        if (numBeneficiaries > 0) {
             uint share = SafeMath.div(msg.value, numBeneficiaries);
             
             for (uint i=0; i<numBeneficiaries; i++) {
