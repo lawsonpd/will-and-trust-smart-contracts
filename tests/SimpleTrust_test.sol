@@ -1,7 +1,6 @@
 pragma solidity >=0.4.22 <0.7.0;
 import "remix_tests.sol";
 import "remix_accounts.sol";
-// import "../github/lawsonpd/will-smart-contract/SimpleTrust.sol";
 import "../github/lawsonpd/will-smart-contract/SimpleTrust.sol";
 
 // File name has to end with '_test.sol', this file can contain more than one testSuite contracts
