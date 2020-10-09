@@ -29,18 +29,19 @@ contract testSuite {
         address(will).call.value(10000 wei).gas(300000);
         uint balance = will.getWillBalance();
         
-        Assert.equal(initBalance, uint(0), "Initial balance should be 0.");
-        Assert.equal(balance, uint(10000), "Balance after deposit should be 10000.");
+        Assert.equal(uint(initBalance), uint(0), "Initial balance should be 0.");
+        Assert.equal(uint(balance), uint(10000), "Balance after deposit should be 10000.");
     }
     
-    function beneficiaryExists() public {
+    function testBeneficiaryExists() public {
         will.addBeneficiary(acc1);
-        address[] memory _beneficiaries = will.getBeneficiaries();
-        Assert.greaterThan(uint(_beneficiaries.length), uint(0), "There should be 1 beneficiary.");
+        // address[] memory _beneficiaries = will.getBeneficiaries();
+        address benef = will.getBeneficiary(0);
+        Assert.equal(benef, acc1, "There should be 1 beneficiary, namely acc1.");
     }
     
     function testBeneficiaryBalance() public {
-        // address(will).call.value(10000 wei).gas(300000);
+        address(will).call.value(10000 wei).gas(300000);
         uint benefBalance = will.getBenefBalance();
         Assert.equal(benefBalance, uint(10000), "Beneficiary balance should be 10000.");
     }
@@ -49,18 +50,13 @@ contract testSuite {
         Assert.ok(!will.isActive(), "Will should not be active at this point.");
     }
     
-    function testDepositAndActivateAndWithdraw() public {
-        // address(will).call.value(10000 wei).gas(300000);
-        will.activateWill();
-        
-        // Withdraw amount will be 0, since acc0 is not a beneficiary, 
-        // but withdrawal should still be allowed.
-        uint withdrawal = will.withdraw();
-        Assert.equal(withdrawal, 0, "Withdrawal should be allowed and amount should be 0.");
-    }
-    
     function testChangeOwner() public {
         will.changeOwner(acc2);
         Assert.ok(!will._isOwner(), "Will owner should not be testing contract address.");
+    }
+    
+    function testActivateWill() public {
+        will.activateWill();
+        Assert.ok(will.isActive(), "Will should now be active.");
     }
 }
