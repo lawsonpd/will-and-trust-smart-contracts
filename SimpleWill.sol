@@ -47,6 +47,14 @@ contract SimpleWill {
         _;
     }
     
+    function getOwner()
+        public
+        view
+    returns(address _owner)
+    {
+        _owner = owner;
+    }
+    
     function addBeneficiary(address _benef) 
         public 
         onlyOwner 
@@ -150,6 +158,13 @@ contract SimpleWill {
         willInactive
     {
         owner = _newOwner;
+    }
+    
+    receive() 
+        external 
+        payable 
+    {
+        willBalance += msg.value;
     }
     
 }
