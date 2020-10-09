@@ -25,7 +25,7 @@ contract testSuite {
     }
     
     function testWillBalance() public {
-        uint initBalance = will.getBalance();
+        uint initBalance = will.getWillBalance();
         address(will).call.value(10000 wei).gas(300000);
         uint balance = will.getWillBalance();
         
