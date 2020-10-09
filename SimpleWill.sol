@@ -88,6 +88,7 @@ contract SimpleWill {
     function withdraw() 
         public 
         willActive
+    returns(uint)
     {
         uint bal = balances[msg.sender];
         willBalance -= bal;
@@ -95,6 +96,8 @@ contract SimpleWill {
         balances[msg.sender] = 0;
         
         msg.sender.transfer(bal);
+        
+        return bal;
     }
     
     function activateWill() 
