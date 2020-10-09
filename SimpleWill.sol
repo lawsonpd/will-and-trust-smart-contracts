@@ -151,6 +151,14 @@ contract SimpleWill {
     {
         return beneficiaries;
     }
+    
+    function getBeneficiary(uint _i) 
+        public 
+        view 
+    returns(address _benef) 
+    {
+        _benef = beneficiaries[_i];
+    }
 
     function changeOwner(address _newOwner)
         public
