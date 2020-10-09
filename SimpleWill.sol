@@ -109,6 +109,14 @@ contract SimpleWill {
         willActivated = true;
     }
     
+    function isActive()
+        public
+        view
+    returns(bool _willActivated)
+    {
+        _willActivated = willActivated;
+    }
+    
     function depositFunds() 
         public 
         payable 
