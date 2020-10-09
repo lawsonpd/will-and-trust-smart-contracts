@@ -12,7 +12,7 @@ contract testSuite {
     SimpleWill will;
     
     /// 'beforeAll' runs before all other tests
-    function beforeEach() public {
+    function beforeAll() public {
         acc0 = payable(TestsAccounts.getAccount(0));
         acc1 = payable(TestsAccounts.getAccount(1));
         acc2 = payable(TestsAccounts.getAccount(2)); // This will be new owner in testChangeOwner
@@ -25,9 +25,12 @@ contract testSuite {
     }
     
     function testWillBalance() public {
+        uint initBalance = will.getBalance();
         address(will).call.value(10000 wei).gas(300000);
         uint balance = will.getWillBalance();
-        Assert.equal(balance, 10000 wei, "Balance should at present be 10000.");
+        
+        Assert.equal(initBalance, uint(0), "Initial balance should be 0.");
+        Assert.equal(balance, uint(10000), "Balance after deposit should be 10000.");
     }
     
     function beneficiaryExists() public {
@@ -36,26 +39,23 @@ contract testSuite {
         Assert.greaterThan(uint(_beneficiaries.length), uint(0), "There should be 1 beneficiary.");
     }
     
+    function testBeneficiaryBalance() public {
+        // address(will).call.value(10000 wei).gas(300000);
+        uint benefBalance = will.getBenefBalance();
+        Assert.equal(benefBalance, uint(10000), "Beneficiary balance should be 10000.");
+    }
+    
     function testIsInactive() public {
         Assert.ok(!will.isActive(), "Will should not be active at this point.");
     }
     
-    function testBalanceAfterDeposit() public {
-        address(will).call.value(10000 wei).gas(300000);
-        uint balance = will.getWillBalance();
-        Assert.equal(balance, 10000, "Balance should at present be 10000.");
-    }
-    
-    function testBeneficiaryBalance() public {
-        address(will).call.value(10000 wei).gas(300000);
-        uint benefBalance = will.getBenefBalance();
-        Assert.equal(benefBalance, 10000, "Since there is 1 beneficiary, the balance thereof should be 10000.");
-    }
-    
     function testDepositAndActivateAndWithdraw() public {
-        address(will).call.value(10000 wei).gas(300000);
+        // address(will).call.value(10000 wei).gas(300000);
         will.activateWill();
-        uint withdrawal = will.withdraw(); // Withdraw amount will be 0 but withdrawal should still be allowed
+        
+        // Withdraw amount will be 0, since acc0 is not a beneficiary, 
+        // but withdrawal should still be allowed.
+        uint withdrawal = will.withdraw();
         Assert.equal(withdrawal, 0, "Withdrawal should be allowed and amount should be 0.");
     }
     
