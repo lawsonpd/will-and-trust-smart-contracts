@@ -32,18 +32,36 @@ contract SimpleWill {
         return msg.sender == owner;
     }
     
+    function _isBeneficiary()
+        public
+        view
+    returns(bool _isBenef)
+    {
+        _isBenef = false;
+        for (uint i=0; i<beneficiaries.length; i++) {
+            if (beneficiaries[i] == msg.sender) {
+                _isBenef = true;
+            }
+        }
+    }
+    
     modifier onlyOwner() {
         require(_isOwner(), "Only the owner of the will can perform this operation.");
         _;
     }
+    
+    modifier onlyBenef() {
+        require(_isBeneficiary(), "Only beneficiares of the will can perform this operation.");
+        _;
+    }
 
     modifier willInactive() {
-        require(!willActivated, "This action cannot be taken after will has been activated.");
+        require(!willActivated, "This operation cannot be taken after will has been activated.");
         _;
     }
     
     modifier willActive() {
-        require(willActivated, "This will has not been activated.");
+        require(willActivated, "This operation can only be performed while will is active.");
         _;
     }
     
@@ -96,16 +114,9 @@ contract SimpleWill {
     function withdraw() 
         public 
         willActive
+        onlyBenef
     returns(uint)
     {
-        bool _isBenef = false;
-        for (uint i=0; i<beneficiaries.length; i++) {
-            if (beneficiaries[i] == msg.sender) {
-                _isBenef = true;
-            }
-        }
-        require(_isBenef, "You are not a beneficiary of this will.");
-        
         uint bal = balances[msg.sender];
         willBalance -= bal;
         
