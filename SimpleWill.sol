@@ -98,6 +98,14 @@ contract SimpleWill {
         willActive
     returns(uint)
     {
+        bool _isBenef = false;
+        for (uint i=0; i<beneficiaries.length; i++) {
+            if (beneficiaries[i] == msg.sender) {
+                _isBenef = true;
+            }
+        }
+        require(_isBenef, "You are not a beneficiary of this will.");
+        
         uint bal = balances[msg.sender];
         willBalance -= bal;
         
