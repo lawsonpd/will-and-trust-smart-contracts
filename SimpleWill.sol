@@ -12,7 +12,7 @@ contract SimpleWill {
     uint private willBalance;
     
     // needed to know how many beneficiaries are on the will
-    EnumberableSet.AddressSet private beneficiaries;
+    EnumerableSet.AddressSet private beneficiaries;
     
     // beneficiary => balance
     mapping(address => uint) private balances;
@@ -68,7 +68,7 @@ contract SimpleWill {
     {
         // record beneficiary.
         beneficiaries.add(_benef);
-        uint numBeneficiaries = beneficiaries.length;
+        uint numBeneficiaries = beneficiaries.length();
         
         // calculate this beneficiary's share of current funds.
         uint benefShare = SafeMath.div(willBalance, numBeneficiaries);
@@ -77,7 +77,7 @@ contract SimpleWill {
         // do this in case funds have already been deposited, in which case we need to
         // move some portion of funds already designated to existing beneficiaries.
         for (uint i; i<numBeneficiaries; i++) {
-            balances[beneficiaries.get(i) = benefShare;
+            balances[beneficiaries.at(i)] = benefShare;
         }
     }
     
@@ -143,12 +143,12 @@ contract SimpleWill {
     {
         willBalance += msg.value;
         
-        uint numBeneficiaries = beneficiaries.length;
+        uint numBeneficiaries = beneficiaries.length();
         if (numBeneficiaries > 0) {
             uint share = SafeMath.div(msg.value, numBeneficiaries);
             
             for (uint i=0; i<numBeneficiaries; i++) {
-                address benef = beneficiaries.get(i);
+                address benef = beneficiaries.at(i);
                 balances[benef] += share;
             }
         }
@@ -159,7 +159,12 @@ contract SimpleWill {
         view 
     returns(address[] memory) 
     {
-        return beneficiaries.enumerate();
+        // This doesn't work.
+        // address[] storage _beneficiaries;
+        // for (uint i; i<beneficiaries.length(); i++) {
+        //     _beneficiaries.push(beneficiaries.at(i));
+        // }
+        // return _beneficiaries;
     }
 
     function changeOwner(address _newOwner)
