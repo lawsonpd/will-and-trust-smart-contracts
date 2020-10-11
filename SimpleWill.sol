@@ -2,14 +2,17 @@ pragma solidity ^0.6.0;
 // SPDX-License-Identifier: GPL;
 
 import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/math/SafeMath.sol";
+import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/utils/EnumerableSet.sol";
 
 contract SimpleWill {
+    using EnumerableSet for EnumerableSet.AddressSet;
+
     address private owner;
     
     uint private willBalance;
     
     // needed to know how many beneficiaries are on the will
-    address[] private beneficiaries;
+    EnumberableSet.AddressSet private beneficiaries;
     
     // beneficiary => balance
     mapping(address => uint) private balances;
@@ -42,6 +45,9 @@ contract SimpleWill {
         _;
     }
     
+    /**
+     * Currently this is only used on `withdraw`, but keeping in case another use case arises.
+     */
     modifier willActive() {
         require(willActivated, "This will has not been activated.");
         _;
@@ -61,7 +67,7 @@ contract SimpleWill {
         willInactive
     {
         // record beneficiary.
-        beneficiaries.push(_benef);
+        beneficiaries.add(_benef);
         uint numBeneficiaries = beneficiaries.length;
         
         // calculate this beneficiary's share of current funds.
@@ -71,7 +77,7 @@ contract SimpleWill {
         // do this in case funds have already been deposited, in which case we need to
         // move some portion of funds already designated to existing beneficiaries.
         for (uint i; i<numBeneficiaries; i++) {
-            balances[beneficiaries[i]] = benefShare;
+            balances[beneficiaries.get(i) = benefShare;
         }
     }
     
@@ -88,6 +94,8 @@ contract SimpleWill {
         view 
     returns(uint) 
     {
+        require(beneficiaries.contains(msg.sender), "You are not a beneficiary of this will.");
+
         // get benef's share of funds based on current balance
         return balances[msg.sender];
         
@@ -98,6 +106,8 @@ contract SimpleWill {
         willActive
     returns(uint)
     {
+        require(beneficiaries.contains(msg.sender), "You are not a beneficiary of this will.");
+        
         uint bal = balances[msg.sender];
         willBalance -= bal;
         
@@ -138,7 +148,7 @@ contract SimpleWill {
             uint share = SafeMath.div(msg.value, numBeneficiaries);
             
             for (uint i=0; i<numBeneficiaries; i++) {
-                address benef = beneficiaries[i];
+                address benef = beneficiaries.get(i);
                 balances[benef] += share;
             }
         }
@@ -149,7 +159,7 @@ contract SimpleWill {
         view 
     returns(address[] memory) 
     {
-        return beneficiaries;
+        return beneficiaries.enumerate();
     }
 
     function changeOwner(address _newOwner)
