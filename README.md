@@ -1,9 +1,13 @@
-# will-smart-contract
-Solidity smart contracts that performs the basic functions of a will.
+# will-and-trust-smart-contracts
+Solidity smart contracts that performs the basic functions of a will and trust.
 
-### BasicWill
+### [Will and trust deployer](./WillAndTrustDeployer.sol)
 
-This contract allows the owner (a benefactor or power of attorney) to store funds in a will and add beneficiaries who can withdraw the funds when the will is active. 
+In this implementation, new will and trust contracts are deployed ad hoc using a single existing deployer contract. The `WillAndTrustDeployer` is (would be) deployed once on-chain and users who wished to create a will or trust would interact with the deployer contract to create their will(s) and trust(s).
+
+### [Simple will](./SimpleWill.sol)
+
+This contract allows the owner (a benefactor or power of attorney) to store funds in a will and add beneficiaries who can withdraw the funds after the will has been activated. 
 
 After the contract is deployed, the owner has the following functions available through the interface:
 
@@ -13,14 +17,23 @@ After the contract is deployed, the owner has the following functions available 
 
 * activate will
 
+* change owner
+
 Beneficiaries are added using their addresses, one at a time.
 
 Funds can be added as many times as wanted. The exception is that after the will has been activated - meaning the funds are available for withdrawal by the beneficiaries - funds can no longer be deposited. This makes sense from a practical standpoint, but also it avoids any complicated logic in the case where some beneficiaries have withdrawn funds already and others have not (meaning the allocation would need to be recalculated with that in mind).
 
-There are a number of checks to ensure that relevant functionality is only available to the owner or the beneficiary making a call. For example, only the owner can activate the will and only the beneficiary can see their own balance.
+There are a number of checks to ensure that relevant functionality is only available to the owner or the beneficiary making a call.
 
-In this simple will implementation, a withdrawal can be made only once and all of the allotted funds are transferred in a lump sum to the beneficiary (msg.sender) making the withdrawal. This implementation also automatically divides the funds equally among beneficiaries. Since Solidity doesn't yet have full support for floating point values, it was difficult to design a way for the owner to specify a unique percentage for each beneficiary.
+### [Simple trust](./SimpleTrust.sol)
 
-### SingleDeployWillAuto
+The trust contract is slightly different from the will contract. While a will can have many beneficiaries, a trust can have exactly one beneficiary; while a will must be activated by the owner, a trust is created with an unlock time, after which the funds may be withdrawn.
 
-This contract is a simplified implementation of the BasicWill.
+### How to use
+
+The easiest way to try out these contracts is to import them in [Remix](https://remix.ethereum.org). 
+<img src="remix_import_from_github.png"
+     alt="Remix import from Github"
+     style="float: left; margin: 10px auto;" />
+
+To follow the intended use flow, first import and deploy `WillAndTrustDeployer.sol`, find that contract under "Deployed Contracts" and then use the `createWill` and `createTrust` public functions to create will and trust contracts.
