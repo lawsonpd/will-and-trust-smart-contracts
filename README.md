@@ -1,11 +1,11 @@
 # will-and-trust-smart-contracts
 Solidity smart contracts that performs the basic functions of a will and trust.
 
-### [Will and trust deployer](./WillAndTrustDeployer.sol)
+### [Will and trust deployer contract](./WillAndTrustDeployer.sol)
 
 In this implementation, new will and trust contracts are deployed ad hoc using a single existing deployer contract. The `WillAndTrustDeployer` is (would be) deployed once on-chain and users who wished to create a will or trust would interact with the deployer contract to create their will(s) and trust(s).
 
-### [Simple will](./SimpleWill.sol)
+### [Simple will contract](./SimpleWill.sol)
 
 This contract allows the owner (a benefactor or power of attorney) to store funds in a will and add beneficiaries who can withdraw the funds after the will has been activated. 
 
@@ -25,7 +25,7 @@ Funds can be added as many times as wanted. The exception is that after the will
 
 There are a number of checks to ensure that relevant functionality is only available to the owner or the beneficiary making a call.
 
-### [Simple trust](./SimpleTrust.sol)
+### [Simple trust contract](./SimpleTrust.sol)
 
 The trust contract is slightly different from the will contract. While a will can have many beneficiaries, a trust can have exactly one beneficiary; while a will must be activated by the owner, a trust is created with an unlock time, after which the funds may be withdrawn.
 
